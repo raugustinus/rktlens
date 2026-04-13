@@ -1,0 +1,1 @@
+("9.1" tarm64osx ("246fb4e6068abf5ecf407a12c946c38c5f2f4cb7" . "55b454d00160be28c5927ddf7340ee573ebc0643") #"/Users/raugustinus/opensolutions/rktlens/ide.rkt" (collects #"drracket" #"check-syntax.rkt") (collects #"ffi" #"unsafe" #"objc.rkt") (collects #"racket" #"base.rkt") (collects #"racket" #"file.rkt") (collects #"racket" #"runtime-config.rkt"))
