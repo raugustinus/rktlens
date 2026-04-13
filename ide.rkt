@@ -6,10 +6,27 @@
 
 (require ffi/unsafe
          ffi/unsafe/objc
-         rackit)
+         ffi/unsafe/define
+         rackit
+         racket/runtime-path)
 
 (provide (all-from-out rackit)
          (all-defined-out))
+
+;; ---- Bundle font loading via CoreText ---------------------------------------
+(define-runtime-path bundled-font "fonts/JetBrainsMono-Regular.ttf")
+
+(import-class NSURL)
+
+(define ct-lib (ffi-lib "/System/Library/Frameworks/CoreText.framework/CoreText"))
+(define CTFontManagerRegisterFontsForURL
+  (get-ffi-obj "CTFontManagerRegisterFontsForURL" ct-lib
+               (_fun _pointer _int _pointer -> _bool)))
+
+(when (file-exists? bundled-font)
+  (define url (tell NSURL fileURLWithPath:
+                    (NSStr (path->string bundled-font))))
+  (void (CTFontManagerRegisterFontsForURL url 1 #f)))
 
 ;; ---- Late-binding extension points ------------------------------------------
 (define *text-view-class* (box NSTextView))
@@ -153,8 +170,8 @@
   (tellv tv setEditable:  #:type _BOOL #t)
   (tellv tv setRichText:  #:type _BOOL #f)
   (tellv tv setAllowsUndo: #:type _BOOL #t)
-  (define beans-bg (hex->NSColor "#111111"))
-  (define beans-fg (hex->NSColor "#ebebd8"))
+  (define beans-bg (hex->NSColor "#1A1B1D"))
+  (define beans-fg (hex->NSColor "#bcbec4"))
   (tellv tv setBackgroundColor:    beans-bg)
   (tellv tv setTextColor:          beans-fg)
   (tellv tv setInsertionPointColor: beans-fg)

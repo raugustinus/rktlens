@@ -10,7 +10,7 @@
               NSScrollView NSNotificationCenter NSBezierPath)
 
 (define gutter-width 40.0)
-(define gutter-bg    (tell (hex->NSColor "#111111") retain))
+(define gutter-bg    (tell (hex->NSColor "#1A1B1D") retain))
 (define gutter-fg    (tell (hex->NSColor "#535353") retain))
 (define gutter-line  (tell (hex->NSColor "#2b2b2b") retain))
 

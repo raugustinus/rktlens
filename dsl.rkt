@@ -100,18 +100,18 @@
         [(symbol? x) (symbol->string x)]
         [else #f]))
 
-(define c-comment (tell (hex->NSColor "#6d6d6d") retain))
-(define c-string  (tell (hex->NSColor "#cee318") retain))
-(define c-number  (tell (hex->NSColor "#ff005b") retain))
-(define c-keyword (tell (hex->NSColor "#8197bf") retain))
-(define c-hashkw  (tell (hex->NSColor "#be67e1") retain))
+;; Islands Dark color scheme
+(define c-comment (tell (hex->NSColor "#7a7e85") retain))
+(define c-string  (tell (hex->NSColor "#6aab73") retain))
+(define c-number  (tell (hex->NSColor "#2aacb8") retain))
+(define c-keyword (tell (hex->NSColor "#cf8e6d") retain))
+(define c-hashkw  (tell (hex->NSColor "#bf8b56") retain))
 
-;; Rainbow paren colors (beans-inspired, 4-color cycle)
 (define rainbow-colors
-  (vector (tell (hex->NSColor "#fad07a") retain)    ; yellow
-          (tell (hex->NSColor "#be67e1") retain)    ; purple
-          (tell (hex->NSColor "#48c6ff") retain)    ; blue
-          (tell (hex->NSColor "#ccff00") retain)))  ; green
+  (vector (tell (hex->NSColor "#cf8e6d") retain)    ; orange
+          (tell (hex->NSColor "#c77dbb") retain)    ; purple
+          (tell (hex->NSColor "#56a8f5") retain)    ; blue
+          (tell (hex->NSColor "#6aab73") retain)))  ; green
 
 (define (racket-syntax src)
   (define in (open-input-string src))

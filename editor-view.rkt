@@ -28,7 +28,7 @@
     [(normal)
      (tellv tv setInsertionPointColor: (hex->NSColor "#ff005b"))]
     [(insert)
-     (tellv tv setInsertionPointColor: (hex->NSColor "#ebebd8"))]))
+     (tellv tv setInsertionPointColor: (hex->NSColor "#bcbec4"))]))
 
 ;; ---- Tracking area for hover ------------------------------------------------
 (define (install-tracking-area! tv)

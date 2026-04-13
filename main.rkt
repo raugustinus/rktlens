@@ -13,7 +13,7 @@
          "settings.rkt"
          racket/runtime-path)
 
-(import-class NSTitlebarAccessoryViewController NSImage NSButton)
+(import-class NSTitlebarAccessoryViewController NSImage NSButton NSData)
 
 (define-objc-class RktPlayHandler NSObject ()
   [- _void (runClicked: [_id sender])
@@ -21,7 +21,14 @@
 
 (define play-handler (tell (tell RktPlayHandler alloc) init))
 
-(define-runtime-path here ".")
+(define-runtime-path app-dir ".")
+
+(define here
+  (let ([args (current-command-line-arguments)])
+    (if (> (vector-length args) 0)
+        (let ([p (string->path (vector-ref args 0))])
+          (if (absolute-path? p) p (build-path (current-directory) p)))
+        app-dir)))
 
 (define initial-path (build-path here "main.rkt"))
 (define initial-src  (file->string initial-path))
@@ -39,7 +46,26 @@
 (define-application rktlens-ide
   (let ()
     (install-full-menu!)
-    (define font (monospace "Berkeley Mono" 13))
+    ;; App icon (Lucide aperture)
+    (define icon-svg
+      (string-append
+       "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"128\" height=\"128\" viewBox=\"0 0 24 24\" "
+       "fill=\"none\" stroke=\"#8197bf\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"
+       "<circle cx=\"12\" cy=\"12\" r=\"10\"/>"
+       "<path d=\"m14.31 8 5.74 9.94\"/>"
+       "<path d=\"M9.69 8h11.48\"/>"
+       "<path d=\"m7.38 12 5.74-9.94\"/>"
+       "<path d=\"M9.69 16 3.95 6.06\"/>"
+       "<path d=\"M14.31 16H2.83\"/>"
+       "<path d=\"m16.62 12-5.74 9.94\"/>"
+       "</svg>"))
+    (define icon-data
+      (tell NSData dataWithBytes: #:type _bytes (string->bytes/utf-8 icon-svg)
+                   length: #:type _NSUInteger (bytes-length (string->bytes/utf-8 icon-svg))))
+    (define icon-img (tell (tell NSImage alloc) initWithData: icon-data))
+    (when icon-img
+      (tellv (tell NSApplication sharedApplication) setApplicationIconImage: icon-img))
+    (define font (monospace "JetBrains Mono" 14))
     (define editor-vc
       (text-view #:storage initial-src
                  #:font font
@@ -48,11 +74,11 @@
       (make-editor-with-tabs editor-vc))
     (add-tab! initial-path)
     (define editor-pane
-      (wrap-in-panel editor-with-tabs 4.0 10.0 "#111111"))
+      (wrap-in-panel editor-with-tabs 4.0 10.0 "#1A1B1D"))
     (define repl-pane
       (wrap-in-panel
        (repl-view #:font font)
-       4.0 10.0 "#111111"))
+       4.0 10.0 "#1A1B1D"))
     (define main-content
       (split-view #:orientation 'vertical
         (split-view #:divider-style 'thin

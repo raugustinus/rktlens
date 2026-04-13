@@ -55,9 +55,10 @@
 ;;   green      #ccff00 — function.macro / builtins
 ;;   red_error  #902020 — unused requires
 
-(define c-import    (tell (hex->NSColor "#48c6ff") retain))
-(define c-local-def (tell (hex->NSColor "#fad07a") retain))
-(define c-unused    (tell (hex->NSColor "#902020") retain))
+;; Islands Dark semantic colors
+(define c-import    (tell (hex->NSColor "#56a8f5") retain))
+(define c-local-def (tell (hex->NSColor "#c77dbb") retain))
+(define c-unused    (tell (hex->NSColor "#f75464") retain))
 
 (define (safe-range? left right)
   (and (exact-nonnegative-integer? left)

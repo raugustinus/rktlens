@@ -160,8 +160,8 @@
 
 ;; ---- Selection delegate -----------------------------------------------------
 (define (make-cell-view ov name icon)
-  (define row-h 22.0)
-  (define icon-sz 14.0)
+  (define row-h 26.0)
+  (define icon-sz 16.0)
   (define icon-y (/ (- row-h icon-sz) 2.0))
   (define cv
     (tell (tell NSTableCellView alloc)
@@ -180,7 +180,7 @@
   (tellv tf setBordered: #:type _BOOL #f)
   (tellv tf setDrawsBackground: #:type _BOOL #f)
   (tellv tf setTextColor: (hex->NSColor "#c8c8c8"))
-  (tellv tf setFont: (tell NSFont systemFontOfSize: #:type _CGFloat 13.0))
+  (tellv tf setFont: (tell NSFont systemFontOfSize: #:type _CGFloat 14.0))
   (tellv tf setLineBreakMode: #:type _NSUInteger 4)
   (tellv tf setUsesSingleLineMode: #:type _BOOL #t)
   (tellv cv addSubview: img-view)
@@ -327,7 +327,7 @@
   (tellv ov setDataSource: tree-source)
   (tellv ov setDelegate: tree-delegate)
   (tellv ov setHeaderView: #f)
-  (tellv ov setRowHeight: #:type _CGFloat 22.0)
+  (tellv ov setRowHeight: #:type _CGFloat 26.0)
   (tellv ov setSelectionHighlightStyle: #:type _NSInteger 0)
   (tellv ov setFocusRingType: #:type _NSUInteger 1)
   ;; Transparent backgrounds so NSVisualEffectView blur shows through
@@ -360,7 +360,7 @@
           initWithFrame: #:type _NSRect (NSMakeRect pad pad inner-w (- 800 (* pad 2)))))
   (tellv panel setBoxType: #:type _NSUInteger 4)
   (tellv panel setTitlePosition: #:type _NSUInteger 0)
-  (tellv panel setFillColor: (hex->NSColor "#111111"))
+  (tellv panel setFillColor: (hex->NSColor "#161618"))
   (tellv panel setCornerRadius: #:type _CGFloat 10.0)
   (tellv panel setBorderWidth: #:type _CGFloat 0.0)
   (tellv panel setContentViewMargins: #:type _NSSize (make-NSSize 0.0 0.0))
