@@ -8,7 +8,7 @@
          "repl.rkt"
          "search.rkt")
 
-(provide make-editor-with-tabs add-tab! switch-tab! close-active-tab!)
+(provide make-editor-with-tabs add-tab! switch-tab!)
 
 (import-class NSView NSTextField NSFont NSColor NSButton NSImage
               NSBezierPath NSNotificationCenter)
@@ -52,10 +52,10 @@
   (define bar (unbox *tab-bar-view*))
   (when bar
     ;; Remove old subviews
-    (define subs (tell bar subviews))
+    (define subs (tell (tell bar subviews) copy))
     (define count (tell #:type _NSUInteger subs count))
     (for ([i (in-range count)])
-      (tellv (tell subs objectAtIndex: #:type _NSUInteger 0) removeFromSuperview))
+      (tellv (tell subs objectAtIndex: #:type _NSUInteger i) removeFromSuperview))
 
     (define tabs (unbox *open-tabs*))
     (define active (unbox *active-tab*))
@@ -164,6 +164,7 @@
 
   ;; Register tab navigation
   (set-tab-nav! next-tab! prev-tab!)
+  (set-close-tab! close-active-tab!)
   ;; Register container for search bar overlay
   (set-editor-container! container)
 

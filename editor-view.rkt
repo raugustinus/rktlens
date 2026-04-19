@@ -7,7 +7,8 @@
          "ide.rkt"
          "editor.rkt"
          "completion.rkt"
-         "search.rkt")
+         "search.rkt"
+         "macro-stepper.rkt")
 
 (provide RktEditorView *vim-enabled* *vim-mode*
          auto-close-pair! skip-or-insert-close! delete-matching-pair?
@@ -177,9 +178,19 @@
          #t
          #f)]
 
+    ;; Cmd-W: close tab (intercept before NSTextView eats it)
+    [(and cmd? (string=? chars "w"))
+     (defer! close-active-tab!)
+     #t]
+
     ;; Cmd-Enter: eval current line/selection in REPL
     [(and cmd? (string=? chars "\r"))
      (eval-in-repl! tv)
+     #t]
+
+    ;; Cmd-Shift-M: macro stepper
+    [(and cmd? shift? (string=? chars "M"))
+     (step-macros!)
      #t]
 
     ;; Cmd-F: find
@@ -460,6 +471,9 @@
        [(completion-visible?)
         (cond
           [(= keycode 125) (completion-navigate! 1)]
+          [(and (= keycode 126) (zero? (unbox *completion-sel*)))
+           (hide-completion-popup!)
+           (super-tell keyDown: event)]
           [(= keycode 126) (completion-navigate! -1)]
           [(or (string=? chars "\r") (string=? chars "\t"))
            (complete-selection! self)]
@@ -489,10 +503,13 @@
        ;; Default NSTextView handling
        [else
         (super-tell keyDown: event)
-        ;; Auto-complete: show popup after 2+ identifier chars
-        (define plen (word-prefix-length self))
+        ;; Auto-complete: only after typing an identifier character
+        (define typed-id-char?
+          (and (= (string-length chars) 1)
+               (identifier-char? (string-ref chars 0))))
         (cond
-          [(>= plen 2) (show-completion-popup! self)]
+          [(and typed-id-char? (>= (word-prefix-length self) 2))
+           (show-completion-popup! self)]
           [(completion-visible?) (hide-completion-popup!)])])]
 
   [- _void (mouseDown: [_id event])
@@ -533,6 +550,13 @@
              keyEquivalent: (NSStr "")))
      (tellv goto-item setTarget: editor-ctx-handler)
      (tellv menu addItem: goto-item)
+     (define step-item
+       (tell (tell NSMenuItem alloc)
+             initWithTitle: (NSStr "Step Macros")
+             action: #:type _SEL (selector stepMacros:)
+             keyEquivalent: (NSStr "")))
+     (tellv step-item setTarget: editor-ctx-handler)
+     (tellv menu addItem: step-item)
      (tellv menu addItem: (tell NSMenuItem separatorItem))
      (tellv menu addItem:
             (tell (tell NSMenuItem alloc)
@@ -557,7 +581,9 @@
               [(and current (equal? (simplify-path filename)
                                     (simplify-path current)))
                (move-to-definition tv identifier)]
-              [else (editor-open-file! filename)])))))])
+              [else (editor-open-file! filename)])))))]
+  [- _void (stepMacros: [_id sender])
+     (step-macros!)])
 
 (define editor-ctx-handler (tell (tell RktEditorContextHandler alloc) init))
 

@@ -7,9 +7,11 @@
          "project.rkt"
          "status-bar.rkt"
          racket/set
+         racket/string
          syntax-color/racket-lexer)
 
 (provide define-application window split-view outline-view project-view
+         highlight-for-file
          text-view repl-view status-bar monospace racket-syntax)
 
 ;; ============================================================================
@@ -150,3 +152,66 @@
            [else (values #f depth)]))
        (loop (if color (cons (list color loc len) acc) acc)
              new-depth)])))
+
+;; ---- YAML highlighter (regex-based) -----------------------------------------
+(define c-yaml-key    c-keyword)
+(define c-yaml-value  c-string)
+(define c-yaml-bool   c-number)
+(define c-yaml-number c-number)
+(define c-yaml-comment c-comment)
+
+(define (yaml-syntax src)
+  (define lines (string-split src "\n" #:trim? #f))
+  (let loop ([lines lines] [pos 0] [acc '()])
+    (cond
+      [(null? lines) (reverse acc)]
+      [else
+       (define line (car lines))
+       (define line-len (string-length line))
+       (define new-acc
+         (cond
+           ;; Comment line
+           [(regexp-match-positions #rx"^(\\s*)#" line)
+            => (lambda (m)
+                 (define start (cdar m))
+                 (cons (list c-yaml-comment (+ pos start) (- line-len start)) acc))]
+           ;; Key: value
+           [(regexp-match-positions #rx"^(\\s*)([^:#\\s][^:]*):" line)
+            => (lambda (m)
+                 (define key-start (caadr (cdr m)))
+                 (define key-end (cdadr (cdr m)))
+                 (define after-colon (add1 key-end))
+                 (define rest (if (< after-colon line-len)
+                                  (substring line after-colon)
+                                  ""))
+                 (define val-acc
+                   (cons (list c-yaml-key (+ pos key-start) (- key-end key-start)) acc))
+                 (cond
+                   [(regexp-match-positions #rx"^\\s+(true|false|yes|no|null)\\s*$" rest)
+                    => (lambda (vm)
+                         (define vs (+ pos after-colon (caar (cdr vm))))
+                         (define vl (- (cdar (cdr vm)) (caar (cdr vm))))
+                         (cons (list c-yaml-bool vs vl) val-acc))]
+                   [(regexp-match-positions #rx"^\\s+(-?[0-9]+(\\.[0-9]+)?)\\s*$" rest)
+                    => (lambda (vm)
+                         (define vs (+ pos after-colon (caar (cdr vm))))
+                         (define vl (- (cdar (cdr vm)) (caar (cdr vm))))
+                         (cons (list c-yaml-number vs vl) val-acc))]
+                   [(regexp-match-positions #rx"^\\s+(\"[^\"]*\"|'[^']*')" rest)
+                    => (lambda (vm)
+                         (define vs (+ pos after-colon (caar (cdr vm))))
+                         (define vl (- (cdar (cdr vm)) (caar (cdr vm))))
+                         (cons (list c-yaml-value vs vl) val-acc))]
+                   [else val-acc]))]
+           [else acc]))
+       (loop (cdr lines) (+ pos line-len 1) new-acc)])))
+
+;; ---- File-extension based highlighter dispatch ------------------------------
+(define (highlight-for-file path)
+  (define s (if (path? path) (path->string path) (or path "")))
+  (cond
+    [(regexp-match? #rx"\\.rkt$" s) racket-syntax]
+    [(regexp-match? #rx"\\.ya?ml$" s) yaml-syntax]
+    [else #f]))
+
+(set-highlight-for-file! highlight-for-file)

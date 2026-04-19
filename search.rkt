@@ -11,6 +11,11 @@
 
 (import-class NSView NSTextField NSButton NSFont NSColor NSNumber)
 
+(define NSStringFromSelector
+  (get-ffi-obj "NSStringFromSelector"
+               (ffi-lib "/System/Library/Frameworks/Foundation.framework/Foundation")
+               (_fun _SEL -> _id)))
+
 ;; ---- Search state -----------------------------------------------------------
 (define *search-bar*     (box #f))
 (define *search-field*   (box #f))
@@ -136,6 +141,15 @@
         (tellv label setStringValue:
                (NSStr (format "~a of ~a" (add1 idx) (length matches)))))))
 
+;; ---- Search text field (catches Escape) -------------------------------------
+(define-objc-class RktSearchField NSTextField ()
+  [- _void (keyDown: [_id event])
+     (define chars (nsstring->string (tell event characters)))
+     (if (string=? chars "\u001b")
+         (hide-search-bar!)
+         (super-tell keyDown: event))]
+  [- _BOOL (acceptsFirstResponder) #t])
+
 ;; ---- Search field delegate --------------------------------------------------
 (define-objc-class RktSearchHandler NSObject ()
   [- _void (searchChanged: [_id sender])
@@ -143,7 +157,15 @@
   [- _void (searchAction: [_id sender])
      (search-next!)]
   [- _void (closeSearch: [_id sender])
-     (hide-search-bar!)])
+     (hide-search-bar!)]
+  ;; Catch Escape via the field editor's command dispatch
+  [- _BOOL (control: [_id control] textView: [_id tv] doCommandBySelector: [_SEL sel])
+     (define sel-name (nsstring->string (tell NSStringFromSelector sel)))
+     (cond
+       [(string=? sel-name "cancelOperation:")
+        (hide-search-bar!)
+        #t]
+       [else #f])])
 
 (define search-handler (tell (tell RktSearchHandler alloc) init))
 
@@ -157,12 +179,13 @@
 
   ;; Search field
   (define field
-    (tell (tell NSTextField alloc)
+    (tell (tell RktSearchField alloc)
           initWithFrame: #:type _NSRect (NSMakeRect 8 4 (- width 130) 24)))
   (tellv field setPlaceholderString: (NSStr "Find..."))
   (tellv field setFont: (tell NSFont systemFontOfSize: #:type _CGFloat 13.0))
   (tellv field setTarget: search-handler)
   (tellv field setAction: #:type _SEL (selector searchAction:))
+  (tellv field setDelegate: search-handler)
   (tellv field setAutoresizingMask: #:type _NSUInteger 2)
   (set-box! *search-field* field)
   (tellv bar addSubview: field)

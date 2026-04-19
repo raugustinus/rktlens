@@ -12,7 +12,8 @@
          hide-completion-popup!
          completion-visible?
          completion-navigate!
-         complete-selection!)
+         complete-selection!
+         *completion-sel*)
 
 (import-class NSWindow NSTableView NSTableColumn NSScrollView
               NSTextFieldCell NSView)

@@ -78,10 +78,17 @@
          (tellv attrs setObject: font forKey: (NSStr "NSFont"))
          (tellv attrs setObject: gutter-fg forKey: (NSStr "NSColor"))
 
-         ;; Visible glyph range
+         ;; Visible glyph range — extend rect to ensure full coverage
+         (define vis-origin (NSRect-origin visible-rect))
+         (define vis-size (NSRect-size visible-rect))
+         (define padded-rect
+           (NSMakeRect (NSPoint-x vis-origin)
+                       (NSPoint-y vis-origin)
+                       (NSSize-w vis-size)
+                       (+ (NSSize-h vis-size) 100.0)))
          (define glyph-range
            (tell #:type _NSRange lm
-                 glyphRangeForBoundingRect: #:type _NSRect visible-rect
+                 glyphRangeForBoundingRect: #:type _NSRect padded-rect
                  inTextContainer: tc))
          (define char-range
            (tell #:type _NSRange lm
@@ -116,7 +123,7 @@
              (define y (+ (NSPoint-y (NSRect-origin line-rect)) inset-y))
              (define num-str (NSStr (number->string ln)))
              (define str-size (tell #:type _NSSize num-str sizeWithAttributes: attrs))
-             (define x (- gutter-width (NSSize-w str-size) 5.0))
+             (define x (- gutter-width (NSSize-w str-size) 10.0))
              (tellv num-str drawAtPoint: #:type _NSPoint (make-NSPoint x y)
                             withAttributes: attrs)
              (define next-pos (+ (NSRange-location line-range)

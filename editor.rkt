@@ -18,11 +18,15 @@
          jump-target-at)
 
 ;; ---- Run check-syntax on a file, returning annotation vectors ---------------
+(define (rkt-file? path)
+  (define s (if (string? path) path (path->string path)))
+  (regexp-match? #rx"\\.rkt$" s))
+
 (define (analyze-file path)
-  (with-handlers ([exn:fail? (lambda (e)
-                               (printf "check-syntax: ~a~n" (exn-message e))
-                               '())])
-    (show-content path)))
+  (if (not (rkt-file? path))
+      '()
+      (with-handlers ([exn:fail? (lambda _ '())])
+        (show-content path))))
 
 ;; ---- Stored state -----------------------------------------------------------
 (define *current-file-path* (box #f))
@@ -135,6 +139,9 @@
 ;; ---- Public: load file into editor with full highlighting ------------------
 (define (editor-open-file! path)
   (set-box! *current-file-path* path)
+  (define hfn (unbox *highlight-for-file-fn*))
+  (define h (and hfn (hfn path)))
+  (when h (set-highlighter! h))
   (define src (file->string path))
   (set-editor-text! src)
   (define annotations (analyze-file path))
@@ -143,9 +150,7 @@
   (when tv
     (apply-semantic-highlights! tv annotations)
     (tellv tv setNeedsDisplay: #:type _BOOL #t))
-  (printf "check-syntax: ~a annotations for ~a~n"
-          (length annotations) path)
-  (flush-output))
+  )
 
 ;; ---- Debounced re-analysis on edit -----------------------------------------
 ;; Each edit bumps the generation. After 500ms, if the generation hasn't
@@ -200,4 +205,4 @@
     (define annotations (analyze-file path))
     (set-box! *current-annotations* annotations)
     (apply-semantic-highlights! tv annotations)
-    (printf "saved: ~a~n" path)))
+    ))

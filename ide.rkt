@@ -48,6 +48,12 @@
 (define (next-tab!) (define f (unbox *next-tab-fn*)) (when f (f)))
 (define (prev-tab!) (define f (unbox *prev-tab-fn*)) (when f (f)))
 
+(define *close-tab-fn* (box #f))
+(define *highlight-for-file-fn* (box #f))
+(define (set-highlight-for-file! f) (set-box! *highlight-for-file-fn* f))
+(define (set-close-tab! f) (set-box! *close-tab-fn* f))
+(define (close-active-tab!) (define f (unbox *close-tab-fn*)) (when f (f)))
+
 ;; ---- Editor state -----------------------------------------------------------
 (define *editor-view*        (box #f))
 (define *highlighter*        (box #f))
