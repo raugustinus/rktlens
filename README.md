@@ -2,6 +2,8 @@
 
 A native macOS IDE for Racket, written in Racket.
 
+> This is a vibecoded project. No guarantees this can be driven daily. You're welcome to try but expect problems and possibly crashes.
+
 rktlens talks directly to Cocoa/AppKit through `ffi/unsafe/objc` — it does **not** use `racket/gui`. The goal is a fast, native-feeling editor that leverages DrRacket's semantic analysis (`drracket/check-syntax`) without being tied to DrRacket's GUI.
 
 ## Features

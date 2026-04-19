@@ -5,14 +5,15 @@ BINDIR  = $(PREFIX)/bin
 
 build:
 	raco make main.rkt
-	raco exe -o rl main.rkt
+	raco exe -o rl-bin main.rkt
 
 clean:
-	rm -rf compiled rl
+	rm -rf compiled rl-bin
 
 install: build
 	install -d $(BINDIR)
-	install -m 755 rl $(BINDIR)/rl
+	install -m 755 rl-bin $(BINDIR)/rl-bin
+	install -m 755 bin/rl.sh $(BINDIR)/rl
 
 uninstall:
-	rm -f $(BINDIR)/rl
+	rm -f $(BINDIR)/rl $(BINDIR)/rl-bin
